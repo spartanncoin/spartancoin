@@ -12,10 +12,10 @@ What is Spartancoin?
 ----------------
 
 Spartancoin is a version os Litecoin using scrypt as a proof-of-work algorithm.
- - 1 minute block targets
- - subsidy halves in 500,000 blocks
- - ~109 billions total coins
- - 100,000 coins per block
+ - 2 minute block targets
+ - subsidy halves in 400,000 blocks
+ - ~100 billions total coins
+ - 150,000 coins per block
  - Difficulty Retarget: Every block using Kimoto's gravity well.
 
 For more information, as well as an immediately useable, binary version of
