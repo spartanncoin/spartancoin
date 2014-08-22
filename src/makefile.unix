@@ -14,6 +14,22 @@ USE_IPV6:=1
 LINK:=$(CXX)
 
 DEFS=-DBOOST_SPIRIT_THREADSAFE -D_FILE_OFFSET_BITS=64
+LDFLAGS=-static -static-libgcc -static-libstdc++ 
+
+     CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include -static \
+-I/usr/local/openssl-1.0.1h/include -static \
+-I/usr/local/boost_1_55_0" \
+     LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib -static  \
+-L/usr/local/openssl-1.0.1h -static \
+-L/usr/local/boost_1_55_0/stage/lib -static"
+
+BDB_INCLUDE_PATH=/usr/local/BerkeleyDB.4.8/include
+BDB_LIB_PATH=/usr/local/BerkeleyDB.4.8/lib
+OPENSSL_INCLUDE_PATH=/usr/local/openssl-1.0.1h/include
+OPENSSL_LIB_PATH=/usr/local/openssl-1.0.1h
+BOOST_LIB_PATH=/usr/local/boost_1_55_0/stage/lib
+BOOST_INCLUDE_PATH=/usr/local/boost_1_55_0/
+BOOST_LIB_SUFFIX=-mt-s
 
 DEFS += $(addprefix -I,$(CURDIR) $(CURDIR)/obj $(BOOST_INCLUDE_PATH) $(BDB_INCLUDE_PATH) $(OPENSSL_INCLUDE_PATH))
 LIBS = $(addprefix -L,$(BOOST_LIB_PATH) $(BDB_LIB_PATH) $(OPENSSL_LIB_PATH))
@@ -22,6 +38,8 @@ TESTDEFS = -DTEST_DATA_DIR=$(abspath test/data)
 
 LMODE = dynamic
 LMODE2 = dynamic
+STATIC=all
+
 ifdef STATIC
 	LMODE = static
 	ifeq (${STATIC}, all)
