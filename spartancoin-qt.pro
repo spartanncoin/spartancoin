@@ -22,28 +22,98 @@ CONFIG += static
 
 USE_QRCODE=1
 USE_UPNP=1
-
-BOOST_LIB_SUFFIX=-mgw48-mt-s-1_55
-BOOST_INCLUDE_PATH=C:/deps/boost_1_55_0
-BOOST_LIB_PATH=C:/deps/boost_1_55_0/stage/lib
-BDB_INCLUDE_PATH=c:/deps/db-4.8.30.NC/build_unix
-BDB_LIB_PATH=c:/deps/db-4.8.30.NC/build_unix
-OPENSSL_INCLUDE_PATH=c:/deps/openssl-1.0.1h/include
-OPENSSL_LIB_PATH=c:/deps/openssl-1.0.1h
-MINIUPNPC_LIB_PATH=c:/deps/miniupnpc
-MINIUPNPC_INCLUDE_PATH=c:/deps/
-QRCODE_LIB_PATH=c:/deps/qrencode-3.4.3/.libs
-QRCODE_INCLUDE_PATH=c:/deps/qrencode-3.4.3
-
 OBJECTS_DIR = build
 MOC_DIR = build
 UI_DIR = build
 
-windows:LIBS += -lshlwapi -static -static-libgcc -static-libstdc++
-win32:QMAKE_LFLAGS += -LC:/MinGW/mingw32/opt/bin
-win32:LIBS += -LC:/MinGW/mingw32/opt/bin
-win32:QMAKE_LFLAGS += -LC:\MinGW\mingw32\opt\bin
-win32:LIBS += -LC:\MinGW\mingw32\opt\bin
+win32: {
+  BOOST_LIB_SUFFIX=-mgw48-mt-s-1_55
+  BOOST_INCLUDE_PATH=C:/deps/boost_1_55_0
+  BOOST_LIB_PATH=C:/deps/boost_1_55_0/stage/lib
+  BDB_INCLUDE_PATH=c:/deps/db-4.8.30.NC/build_unix
+  BDB_LIB_PATH=c:/deps/db-4.8.30.NC/build_unix
+  OPENSSL_INCLUDE_PATH=c:/deps/openssl-1.0.1h/include
+  OPENSSL_LIB_PATH=c:/deps/openssl-1.0.1h
+  MINIUPNPC_LIB_PATH=c:/deps/miniupnpc
+  MINIUPNPC_INCLUDE_PATH=c:/deps/
+  QRCODE_LIB_PATH=c:/deps/qrencode-3.4.3/.libs
+  QRCODE_INCLUDE_PATH=c:/deps/qrencode-3.4.3
+  windows:LIBS += -lshlwapi -static -static-libgcc -static-libstdc++
+  win32:QMAKE_LFLAGS += -LC:/MinGW/mingw32/opt/bin
+  LIBS += -LC:/MinGW/mingw32/opt/bin
+  win32:QMAKE_LFLAGS += -LC:\MinGW\mingw32\opt\bin
+  LIBS += -LC:\MinGW\mingw32\opt\bin
+}
+macx:{
+  BOOST_LIB_SUFFIX=-mt-s
+  BOOST_INCLUDE_PATH=/usr/local/opt/boost_1_55_0
+  BOOST_LIB_PATH=/usr/local/opt/boost_1_55_0/stage/lib
+  OPENSSL_INCLUDE_PATH=/usr/local/opt/openssl/include
+  OPENSSL_LIB_PATH=/usr/local/opt/openssl/lib
+  MINIUPNPC_LIB_PATH=/usr/local/opt/miniupnpc/lib
+  MINIUPNPC_INCLUDE_PATH=/usr/local/opt/miniupnpc/include
+  QRCODE_LIB_PATH=/usr/local/opt/qrencode/lib
+  QRCODE_INCLUDE_PATH=/usr/local/opt/qrencode/include
+  
+  #CPPFLAGS="$CPPFLAGS -I$bdb_prefix/include"
+  #LIBS+= -L$bdb_prefix/lib"
+  CPPFLAGS="$CPPFLAGS -I/usr/local/opt/protobuf/include"
+  LIBS+= -L/usr/local/opt/protobuf/lib
+  CPPFLAGS="$CPPFLAGS -I/usr/local/opt/miniupnpc/include"
+  LIBS+= -L/usr/local/opt/miniupnpc/lib
+  CPPFLAGS="$CPPFLAGS -I/usr/local/opt/libpng/include"
+  LIBS+= -L/usr/local/opt/libpng/lib
+  CPPFLAGS="$CPPFLAGS -I/usr/local/opt/qrencode/include"
+  LIBS+= -L/usr/local/opt/qrencode/lib
+}
+
+!win32:!macx:{
+  BOOST_LIB_SUFFIX=-mt-s
+  BOOST_THREAD_LIB_SUFFIX=-mt-s
+  BOOST_LIB_PATH=/usr/local/boost_1_55_0/stage/lib
+  BOOST_INCLUDE_PATH=/usr/local/boost_1_55_0
+  #CPPFLAGS="$CPPFLAGS -I/usr/local/protobuf/include"
+  #LIBS+= -L/usr/local/protobuf/lib
+  BDB_INCLUDE_PATH=/usr/local/BerkeleyDB.4.8/include
+  BDB_LIB_PATH=/usr/local/BerkeleyDB.4.8/lib
+  OPENSSL_INCLUDE_PATH=/usr/local/openssl-1.0.1h/include
+  OPENSSL_LIB_PATH=/usr/local/openssl-1.0.1h
+  MINIUPNPC_LIB_PATH=/usr/local/miniupnpc/lib
+  MINIUPNPC_INCLUDE_PATH=/usr/local/miniupnpc/include
+  QRCODE_LIB_PATH=/usr/local/qrencode-3.4.3/.libs
+  QRCODE_INCLUDE_PATH=/usr/local/qrencode-3.4.3
+
+}
+# platform specific defaults, if not overridden on command line
+isEmpty(BOOST_LIB_SUFFIX) {
+    macx:BOOST_LIB_SUFFIX = -mt-s
+    win32:BOOST_LIB_SUFFIX = -mgw44-mt-s-1_50
+}
+
+isEmpty(BOOST_THREAD_LIB_SUFFIX) {
+    macx:BOOST_THREAD_LIB_SUFFIX = $$BOOST_LIB_SUFFIX
+}
+
+isEmpty(BDB_LIB_PATH) {
+    macx:BDB_LIB_PATH = /opt/local/lib/db48
+}
+
+isEmpty(BDB_LIB_SUFFIX) {
+    macx:BDB_LIB_SUFFIX = -4.8
+}
+
+isEmpty(BDB_INCLUDE_PATH) {
+    macx:BDB_INCLUDE_PATH = /opt/local/include/db48
+}
+
+isEmpty(BOOST_LIB_PATH) {
+    macx:BOOST_LIB_PATH = /opt/local/lib
+}
+
+isEmpty(BOOST_INCLUDE_PATH) {
+    macx:BOOST_INCLUDE_PATH = /opt/local/include
+}
+
 
 # use: qmake "RELEASE=1"
 contains(RELEASE, 1) {
@@ -80,8 +150,8 @@ contains(USE_QRCODE, 1) {
     message(Building with QRCode support)
     DEFINES += USE_QRCODE
     #LIBS += -lqrencode
-    win32:LIBS += $$join(QRCODE_LIB_PATH,,-L,) -lqrencode
-    win32:INCLUDEPATH += $$QRCODE_INCLUDE_PATH
+    LIBS += $$join(QRCODE_LIB_PATH,,-L,) -lqrencode
+    INCLUDEPATH += $$QRCODE_INCLUDE_PATH
 }
 
 # use: qmake "USE_UPNP=1" ( enabled by default; default)
@@ -388,35 +458,7 @@ OTHER_FILES += README.md \
     src/qt/test/*.cpp \
     src/qt/test/*.h
 
-# platform specific defaults, if not overridden on command line
-isEmpty(BOOST_LIB_SUFFIX) {
-    macx:BOOST_LIB_SUFFIX = -mt
-    win32:BOOST_LIB_SUFFIX = -mgw44-mt-s-1_50
-}
 
-isEmpty(BOOST_THREAD_LIB_SUFFIX) {
-    BOOST_THREAD_LIB_SUFFIX = $$BOOST_LIB_SUFFIX
-}
-
-isEmpty(BDB_LIB_PATH) {
-    macx:BDB_LIB_PATH = /opt/local/lib/db48
-}
-
-isEmpty(BDB_LIB_SUFFIX) {
-    macx:BDB_LIB_SUFFIX = -4.8
-}
-
-isEmpty(BDB_INCLUDE_PATH) {
-    macx:BDB_INCLUDE_PATH = /opt/local/include/db48
-}
-
-isEmpty(BOOST_LIB_PATH) {
-    macx:BOOST_LIB_PATH = /opt/local/lib
-}
-
-isEmpty(BOOST_INCLUDE_PATH) {
-    macx:BOOST_INCLUDE_PATH = /opt/local/include
-}
 
 win32:DEFINES += WIN32
 win32:RC_FILE = src/qt/res/bitcoin-qt.rc
@@ -444,9 +486,9 @@ macx:OBJECTIVE_SOURCES += src/qt/macdockiconhandler.mm src/qt/macnotificationhan
 macx:LIBS += -framework Foundation -framework ApplicationServices -framework AppKit -framework CoreServices
 macx:DEFINES += MAC_OSX MSG_NOSIGNAL=0
 macx:ICON = src/qt/res/icons/spartancoin.icns
-macx:QMAKE_CFLAGS_THREAD += -pthread
-macx:QMAKE_LFLAGS_THREAD += -pthread
-macx:QMAKE_CXXFLAGS_THREAD += -pthread
+#macx:QMAKE_CFLAGS_THREAD += -pthread
+#macx:QMAKE_LFLAGS_THREAD += -pthread
+#macx:QMAKE_CXXFLAGS_THREAD += -pthread
 macx:QMAKE_INFO_PLIST = share/qt/Info.plist
 
 # Set libraries and includes at end, to use platform-defined defaults if not overridden
