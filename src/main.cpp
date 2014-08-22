@@ -1080,6 +1080,11 @@ int64 static GetBlockValue(int nHeight, int64 nFees)
         nSubsidy = 100000 * COIN;
     } else if (nHeight < 30000) {
         nSubsidy = 50000 * COIN;
+    }else if (nHeight < 111280) {
+        nSubsidy = 150000 * COIN;
+    }
+    else{
+      nSubsidy = 75000 * COIN;
     }
 
     nSubsidy >>= (nHeight / 400000);
@@ -1087,9 +1092,12 @@ int64 static GetBlockValue(int nHeight, int64 nFees)
     return nSubsidy + nFees;
 }
 
+// 720 blk/day
 static const int64 nTargetTimespan = 60 * 60; // Spartancoin: Not used
 static const int64 nTargetSpacing = 120; // Spartancoin: 2 minute block
 static const int64 nInterval = nTargetTimespan / nTargetSpacing;
+static const int64 nDiffChangeBlock = fTestNet ? 100 : 110560;
+static const int64 nTargetTimespanNEW = 120;
 
 //
 // minimum amount of work that could possibly be required nTime after
@@ -1179,23 +1187,104 @@ unsigned int static KimotoGravityWell(const CBlockIndex* pindexLast, const CBloc
 }
 
 
+unsigned int static DigiShieldRetarget(const CBlockIndex* pindexLast, const CBlockHeader *pblock)
+{
+    unsigned int nProofOfWorkLimit = bnProofOfWorkLimit.GetCompact();
+    int nHeight = pindexLast->nHeight + 1;
+    bool newDiffProtocol = (nHeight >= nDiffChangeBlock);
+    
+    int64 retargetTimespan = nTargetTimespan;
+    int64 retargetSpacing = nTargetSpacing;
+    int64 retargetInterval = nInterval;
+    
+    if (newDiffProtocol) {
+       //will be used if we will set new nTargetTimespan and nTargetSpacing
+        retargetInterval = nTargetTimespanNEW / nTargetSpacing;
+        retargetTimespan = nTargetTimespanNEW;
+    }
+    
+    // Genesis block
+    if (pindexLast == NULL)
+        return nProofOfWorkLimit;
+
+    // Only change once per interval
+    if ((pindexLast->nHeight+1) % retargetInterval != 0)
+    {
+        if (fTestNet)
+        {
+            // Special difficulty rule for testnet:
+            // If the new block's timestamp is more than 2* nTargetSpacing minutes
+            // then allow mining of a min-difficulty block.
+            if (pblock->nTime > pindexLast->nTime + nTargetSpacing*2)
+                return nProofOfWorkLimit;
+            else
+            {
+                // Return the last non-special-min-difficulty-rules-block
+                const CBlockIndex* pindex = pindexLast;
+                while (pindex->pprev && pindex->nHeight % retargetInterval != 0 && pindex->nBits == nProofOfWorkLimit)
+                    pindex = pindex->pprev;
+                return pindex->nBits;
+            }
+        }
+        return pindexLast->nBits;
+    }
+
+    // SpartanCoin: This fixes an issue where a 51% attack can change difficulty at will.
+    // Go back the full period unless it's the first retarget after genesis. Code courtesy of Art Forz
+    int blockstogoback = retargetInterval-1;
+    if ((pindexLast->nHeight+1) != retargetInterval)
+        blockstogoback = retargetInterval;
+
+    // Go back by what we want to be 14 days worth of blocks
+    const CBlockIndex* pindexFirst = pindexLast;
+    for (int i = 0; pindexFirst && i < blockstogoback; i++)
+        pindexFirst = pindexFirst->pprev;
+    assert(pindexFirst);
+
+    // Limit adjustment step
+    int64 nActualTimespan = pindexLast->GetBlockTime() - pindexFirst->GetBlockTime();
+    printf("DigiShieldRetarget: RETARGET:  nActualTimespan = %d  before bounds\n", nActualTimespan);
+    
+    //DigiShield implementation / thanks to RealSolid & WDC  for this code
+    // amplitude filter - thanks to daft27 for this code
+    nActualTimespan = retargetTimespan + (nActualTimespan - retargetTimespan)/8;
+    if (nActualTimespan < (retargetTimespan - (retargetTimespan/4)) ) nActualTimespan = (retargetTimespan - (retargetTimespan/4));
+    if (nActualTimespan > (retargetTimespan + (retargetTimespan/2)) ) nActualTimespan = (retargetTimespan + (retargetTimespan/2));
+    // Retarget
+    CBigNum bnNew;
+    bnNew.SetCompact(pindexLast->nBits);
+    bnNew *= nActualTimespan;
+    bnNew /= retargetTimespan;
+
+    if (bnNew > bnProofOfWorkLimit)
+        bnNew = bnProofOfWorkLimit;
+
+    /// debug print
+    printf("DigiShieldRetarget: RETARGET\n");
+    printf("nTargetTimespan = %d    nActualTimespan = %d\n", retargetTimespan, nActualTimespan);
+    printf("Before: %08x  %s\n", pindexLast->nBits, CBigNum().SetCompact(pindexLast->nBits).getuint256().ToString().c_str());
+    printf("After:  %08x  %s\n", bnNew.GetCompact(), bnNew.getuint256().ToString().c_str());
+
+    return bnNew.GetCompact();
+}
 unsigned int static GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock)
 {
-
-        static const int64        BlocksTargetSpacing                        = 2 * 60; // 1 Minute
-        unsigned int                TimeDaySeconds                                = 60 * 60 * 24;
-
-        int64                       PastSecondsMin                                = TimeDaySeconds * 0.25;
-        int64                       PastSecondsMax                                = TimeDaySeconds * 7;
-	if (pindexLast->nHeight+1 <= 6000)
-        {
-                                    PastSecondsMin                                = TimeDaySeconds * 0.01;
-                                    PastSecondsMax                                = TimeDaySeconds * 0.14;
-	}
-        uint64                      PastBlocksMin                                = PastSecondsMin / BlocksTargetSpacing;
-        uint64                      PastBlocksMax                                = PastSecondsMax / BlocksTargetSpacing;        
-        
-        return KimotoGravityWell(pindexLast, pblock, BlocksTargetSpacing, PastBlocksMin, PastBlocksMax);
+  if (pindexLast->nHeight+1 > nDiffChangeBlock) {
+       return DigiShieldRetarget(pindexLast, pblock);
+  }
+  
+  static const int64  BlocksTargetSpacing  = 2 * 60; // 1 Minute
+  unsigned int        TimeDaySeconds       = 60 * 60 * 24;
+  int64               PastSecondsMin       = TimeDaySeconds * 0.25;
+  int64               PastSecondsMax       = TimeDaySeconds * 7;
+  if (pindexLast->nHeight+1 <= 6000)
+  {
+                          PastSecondsMin       = TimeDaySeconds * 0.01;
+                          PastSecondsMax       = TimeDaySeconds * 0.14;
+  }
+  uint64              PastBlocksMin        = PastSecondsMin / BlocksTargetSpacing;
+  uint64              PastBlocksMax        = PastSecondsMax / BlocksTargetSpacing;        
+  return KimotoGravityWell(pindexLast, pblock, BlocksTargetSpacing, PastBlocksMin, PastBlocksMax);
 }
 
 bool CheckProofOfWork(uint256 hash, unsigned int nBits)
@@ -2821,7 +2910,7 @@ bool InitBlockIndex() {
             uint256 trash;
             char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
 
-            loop
+            while(true)
             {
                 scrypt_1024_1_1_256_sp(BEGIN(block.nVersion), BEGIN(trash), scratchpad);
                 if (trash <= hashTarget)
@@ -4609,7 +4698,7 @@ void static SpartancoinMiner(CWallet *pwallet)
     CReserveKey reservekey(pwallet);
     unsigned int nExtraNonce = 0;
 
-    try { loop {
+    try { while(true) {
         while (vNodes.empty())
             MilliSleep(1000);
 
@@ -4647,13 +4736,13 @@ void static SpartancoinMiner(CWallet *pwallet)
         //
         int64 nStart = GetTime();
         uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
-        loop
+        while(true)
         {
             unsigned int nHashesDone = 0;
 
             uint256 thash;
             char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
-            loop
+            while(true)
             {
                 scrypt_1024_1_1_256_sp(BEGIN(pblock->nVersion), BEGIN(thash), scratchpad);
 

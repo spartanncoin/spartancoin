@@ -20,19 +20,30 @@ CONFIG += static
 #    BOOST_INCLUDE_PATH, BOOST_LIB_PATH, BDB_INCLUDE_PATH,
 #    BDB_LIB_PATH, OPENSSL_INCLUDE_PATH and OPENSSL_LIB_PATH respectively
 
-#BOOST_LIB_SUFFIX=-mgw48-mt-s-1_55
-#BOOST_INCLUDE_PATH=C:/deps/boost_1_55_0
-#BOOST_LIB_PATH=C:/deps/boost_1_55_0/stage/lib
-#BDB_INCLUDE_PATH=C:/deps/db-4.8.30.NC/build_unix
-#BDB_LIB_PATH=C:/deps/db-4.8.30.NC/build_unix
-#OPENSSL_INCLUDE_PATH=C:/deps/openssl-1.0.1f/include
-#OPENSSL_LIB_PATH=C:/deps/openssl-1.0.1f
-#MINIUPNPC_INCLUDE_PATH=C:/deps/
-#MINIUPNPC_LIB_PATH=C:/deps/miniupnpc
+USE_QRCODE=1
+USE_UPNP=1
+
+BOOST_LIB_SUFFIX=-mgw48-mt-s-1_55
+BOOST_INCLUDE_PATH=C:/deps/boost_1_55_0
+BOOST_LIB_PATH=C:/deps/boost_1_55_0/stage/lib
+BDB_INCLUDE_PATH=c:/deps/db-4.8.30.NC/build_unix
+BDB_LIB_PATH=c:/deps/db-4.8.30.NC/build_unix
+OPENSSL_INCLUDE_PATH=c:/deps/openssl-1.0.1h/include
+OPENSSL_LIB_PATH=c:/deps/openssl-1.0.1h
+MINIUPNPC_LIB_PATH=c:/deps/miniupnpc
+MINIUPNPC_INCLUDE_PATH=c:/deps/
+QRCODE_LIB_PATH=c:/deps/qrencode-3.4.3/.libs
+QRCODE_INCLUDE_PATH=c:/deps/qrencode-3.4.3
 
 OBJECTS_DIR = build
 MOC_DIR = build
 UI_DIR = build
+
+windows:LIBS += -lshlwapi -static -static-libgcc -static-libstdc++
+win32:QMAKE_LFLAGS += -LC:/MinGW/mingw32/opt/bin
+LIBS += -LC:/MinGW/mingw32/opt/bin
+win32:QMAKE_LFLAGS += -LC:\MinGW\mingw32\opt\bin
+LIBS += -LC:\MinGW\mingw32\opt\bin
 
 # use: qmake "RELEASE=1"
 contains(RELEASE, 1) {
@@ -68,7 +79,9 @@ win32:QMAKE_LFLAGS *= -static-libgcc -static-libstdc++
 contains(USE_QRCODE, 1) {
     message(Building with QRCode support)
     DEFINES += USE_QRCODE
-    LIBS += -lqrencode
+    #LIBS += -lqrencode
+    win32:LIBS += $$join(QRCODE_LIB_PATH,,-L,) -lqrencode
+    win32:INCLUDEPATH += $$QRCODE_INCLUDE_PATH
 }
 
 # use: qmake "USE_UPNP=1" ( enabled by default; default)

@@ -54,7 +54,8 @@ static const int64 DUST_SOFT_LIMIT = 100000000; // 1 SPN
 /** Dust Hard Limit, ignored as wallet inputs (mininput default) */
 static const int64 DUST_HARD_LIMIT = 1000000;   // 0.01 SPN mininput
 /** No amount larger than this (in satoshi) is valid */
-static const int64 MAX_MONEY = 92233720368 * COIN; // Maximum or compile warning, will fix in future release. 
+//static const int64 MAX_MONEY = 92233720368 * COIN; // Maximum or compile warning, will fix in future release. 
+static const int64 MAX_MONEY =   50000000000 * COIN; // Maximum or compile warning, will fix in future release. 
 inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 /** Coinbase transaction outputs can only be spent after this number of new blocks (network rule) */
 static const int COINBASE_MATURITY = 50;
