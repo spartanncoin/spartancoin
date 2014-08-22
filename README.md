@@ -45,6 +45,16 @@ The `master` branch is regularly built and tested, but is not guaranteed to be
 completely stable. [Tags](https://github.com/spartancoin/spartancoin) are created
 regularly to indicate new official, stable release versions of Spartancoin.
 
+
+INFO
+-------
+GUI wallet Windows 32 = Spartancoin-Qt.exe 
+daemon win32 = spartancoind.exe 
+
+Ubuntu 13.2 - 64 bit: 
+daemon Ubuntu = spartancoind
+QT wallet 64bit =startancoin-qt
+
 Testing
 -------
 
