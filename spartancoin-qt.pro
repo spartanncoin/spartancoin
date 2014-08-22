@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = spartancoin-qt
 macx:TARGET = "Spartancoin-Qt"
-VERSION = 0.8.6.2
+VERSION = 1.1.2
 INCLUDEPATH += src src/json src/qt
 QT += core gui network
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -41,9 +41,9 @@ UI_DIR = build
 
 windows:LIBS += -lshlwapi -static -static-libgcc -static-libstdc++
 win32:QMAKE_LFLAGS += -LC:/MinGW/mingw32/opt/bin
-LIBS += -LC:/MinGW/mingw32/opt/bin
+win32:LIBS += -LC:/MinGW/mingw32/opt/bin
 win32:QMAKE_LFLAGS += -LC:\MinGW\mingw32\opt\bin
-LIBS += -LC:\MinGW\mingw32\opt\bin
+win32:LIBS += -LC:\MinGW\mingw32\opt\bin
 
 # use: qmake "RELEASE=1"
 contains(RELEASE, 1) {
